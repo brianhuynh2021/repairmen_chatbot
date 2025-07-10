@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+langchain
+openai
+pydantic
+python-dotenv
+pandas
+faiss-cpu  # for vector search
