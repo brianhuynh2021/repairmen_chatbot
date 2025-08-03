@@ -1,0 +1,70 @@
+# 👉 Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.egg
+*.log
+
+# 👉 Virtualenv
+env/
+venv/
+ENV/
+.venv/
+venv.bak/
+
+# 👉 IDEs
+.vscode/
+.idea/
+*.swp
+
+# 👉 OS junk
+.DS_Store
+Thumbs.db
+
+# 👉 Jupyter / IPython
+.ipynb_checkpoints
+
+# 👉 dotenv & config
+.env
+.env.*
+
+# 👉 LangChain stuff (optional, e.g. cache)
+.cache/
+chromadb/
+index/
+
+# 👉 FAISS index files (vectorstore)
+*.faiss
+*.json
+*.idx
+
+# 👉 Docker
+**/__pycache__/
+**/migrations/
+*.sqlite3
+*.db
+docker-compose.override.yml
+
+# 👉 Test & coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+.coverage
+.pytest_cache/
+.junit/
+
+# 👉 VSCode workspace files
+*.code-workspace
+
+# 👉 MyPy, Pylint, Ruff cache
+.mypy_cache/
+.pylint.d/
+.pyre/
+ruff_cache/
+
+# 👉 Mac/Linux permissions
+*.lock

@@ -98,7 +98,7 @@ Lê Văn C,Sửa máy lạnh,0933123123,Trảng Bom
 ⸻
 
 👨‍💻 Tác giả
-	•	Họ tên: Brian Huỳnh
+	•	Họ tên: Huynh Nguyen
 	•	Mục tiêu: Dự án thực tế để ứng tuyển vị trí AI Engineer hoặc Backend Developer
 
 ⸻
