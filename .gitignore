@@ -68,3 +68,5 @@ ruff_cache/
 
 # 👉 Mac/Linux permissions
 *.lock
+*env
+*.env.*

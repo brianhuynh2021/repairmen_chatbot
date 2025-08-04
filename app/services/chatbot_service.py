@@ -1,7 +1,7 @@
 from app.db.repairmen_loader import load_repairmen
 from app.core.config import settings
-from langchain.vectorstores import FAISS
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain_openai import OpenAIEmbeddings
 from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
 import os
@@ -16,7 +16,9 @@ class ChatbotService:
         self.vectorstore = FAISS.from_documents(docs, embeddings)
 
         self.chain = RetrievalQA.from_chain_type(
-            llm=ChatOpenAI(temperature=0),  # ❌ không cần truyền openai_api_key thủ công
+            llm=ChatOpenAI(
+                temperature=0
+            ),  # ❌ không cần truyền openai_api_key thủ công
             retriever=self.vectorstore.as_retriever(),
         )
 
