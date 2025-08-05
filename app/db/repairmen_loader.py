@@ -1,7 +1,7 @@
 import pandas as pd
 from langchain.docstore.document import Document
 
-def load_repairmen(csv_path: str = "app/data/repairmen.csv") -> list[Document]:
+def load_repairmen(csv_path: str = "../data/repairmen.csv") -> list[Document]:
     df = pd.read_csv(csv_path)
 
     documents = []
