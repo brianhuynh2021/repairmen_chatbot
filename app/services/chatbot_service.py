@@ -4,6 +4,8 @@ from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
+from app.models.chat_model import LangChainResult
+from typing import Any
 import os
 
 
@@ -22,5 +24,6 @@ class ChatbotService:
             retriever=self.vectorstore.as_retriever(),
         )
 
-    def get_reply(self, message: str) -> str:
-        return self.chain.run(message)
+    def get_reply(self, message: str) -> LangChainResult:
+        raw_result: dict[str, Any] = self.chain.invoke(message)
+        return LangChainResult(**raw_result)
