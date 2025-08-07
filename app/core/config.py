@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import SecretStr
-from pathlib import Path
+
 from app.models.llm_provider_model import LLMProvider
 class Settings(BaseSettings):
     llm_provider: LLMProvider = LLMProvider.OPENAI
@@ -18,7 +18,8 @@ class Settings(BaseSettings):
     bedrock_model_id: str = "anthropic.claude-v2"
     # Robust relative .env loading
     model_config = SettingsConfigDict(
-        env_file=str(Path(__file__).resolve().parent.parent / ".env")
+        env_file=".env",  # 👈 đảm bảo là root project có .env
+        env_file_encoding="utf-8",
     )
 
 settings = Settings()

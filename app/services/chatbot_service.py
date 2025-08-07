@@ -7,13 +7,13 @@ from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
 from app.models.chat_model import LangChainResult
 from typing import Any
-import os
+
 
 
 class ChatbotService:
     def __init__(self):
         docs = load_repairmen()
-        embeddings = OpenAIEmbeddings()
+        embeddings = OpenAIEmbeddings(api_key=settings.openai_api_key)
         self.vectorstore = FAISS.from_documents(docs, embeddings)
         
         llm = get_llm_chat_model()
