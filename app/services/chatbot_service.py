@@ -1,5 +1,6 @@
 from app.db.repairmen_loader import load_repairmen
 from app.core.config import settings
+from app.llm.llm_client_factory import get_llm_chat_model
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 from langchain_openai import ChatOpenAI
@@ -11,16 +12,15 @@ import os
 
 class ChatbotService:
     def __init__(self):
-        os.environ["OPENAI_API_KEY"] = settings.openai_api_key  # ✅ cần có dòng này
-
         docs = load_repairmen()
         embeddings = OpenAIEmbeddings()
         self.vectorstore = FAISS.from_documents(docs, embeddings)
+        
+        llm = get_llm_chat_model()
+        
 
         self.chain = RetrievalQA.from_chain_type(
-            llm=ChatOpenAI(
-                temperature=0
-            ),  # ❌ không cần truyền openai_api_key thủ công
+            llm=llm,  # ❌ không cần truyền openai_api_key thủ công
             retriever=self.vectorstore.as_retriever(),
         )
 
