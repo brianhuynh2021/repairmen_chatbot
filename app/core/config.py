@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     
     #Openai
     openai_api_key: SecretStr
-    openai_model: str = "gpt-3.5-turbo"
+    openai_model: str = "gpt-4"
     
     # Gemini
     gemini_api_key: str | None = None
