@@ -3,7 +3,6 @@ from app.core.config import settings
 from app.llm.llm_client_factory import get_llm_chat_model
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
-from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
 from app.models.chat_model import LangChainResult
 from typing import Any
