@@ -1,0 +1,117 @@
+name: Backend CI/CD (skip tests if no key)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  packages: write  # để push image lên ghcr.io
+
+env:
+  PYTHON_VERSION: "3.13"
+  IMAGE_NAME: ghcr.io/${{ github.repository }}/repairmen-chatbot
+
+jobs:
+  # --- Optional: cài deps & (tùy chọn) lint ---
+  build:
+    name: Install deps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # (Tuỳ chọn) Bật lint khi cần:
+      # - name: Ruff
+      #   run: pip install ruff && ruff check .
+
+  # --- Tests chỉ chạy khi có OPENAI_API_KEY (nếu không có => auto-skip) ---
+  test:
+    name: Run tests (only if OPENAI_API_KEY provided)
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ secrets.OPENAI_API_KEY != '' }}   # <= không có key thì skip job này
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run pytest
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: pytest -q
+
+  # --- Build & Push Docker image lên GHCR ---
+  docker:
+    name: Build & Push Docker (GHCR)
+    runs-on: ubuntu-latest
+    needs: build   # không chờ test vì test có thể bị skip
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,format=long
+            type=raw,value=latest
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  # --- (Optional) Deploy Railway nếu có token ---
+  deploy-railway:
+    name: Deploy to Railway
+    runs-on: ubuntu-latest
+    needs: docker
+    if: github.ref == 'refs/heads/main' && secrets.RAILWAY_TOKEN != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
+
+      - name: Trigger Railway deploy
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+          RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
+        run: |
+          railway login --token "$RAILWAY_TOKEN"
+          railway link --project "$RAILWAY_PROJECT_ID"
+          railway up --service "$RAILWAY_SERVICE_ID" --ci
