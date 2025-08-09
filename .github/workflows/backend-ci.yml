@@ -8,17 +8,33 @@ on:
 
 permissions:
   contents: read
-  packages: write  # để push image lên ghcr.io
+  packages: write   # needed for GHCR push
 
 env:
   PYTHON_VERSION: "3.13"
   IMAGE_NAME: ghcr.io/${{ github.repository }}/repairmen-chatbot
 
 jobs:
-  # --- Optional: cài deps & (tùy chọn) lint ---
+  # --- Probe secrets & expose booleans as job outputs ---
+  check-secrets:
+    name: Check secrets
+    runs-on: ubuntu-latest
+    outputs:
+      has_openai_key: ${{ steps.keys.outputs.has_openai_key }}
+      has_railway: ${{ steps.keys.outputs.has_railway }}
+    steps:
+      - id: keys
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ -n "$OPENAI_API_KEY" ]; then echo "has_openai_key=true" >> "$GITHUB_OUTPUT"; else echo "has_openai_key=false" >> "$GITHUB_OUTPUT"; fi
+          if [ -n "$RAILWAY_TOKEN" ]; then echo "has_railway=true" >> "$GITHUB_OUTPUT"; else echo "has_railway=false" >> "$GITHUB_OUTPUT"; fi
+
   build:
     name: Install deps
     runs-on: ubuntu-latest
+    needs: check-secrets
     steps:
       - uses: actions/checkout@v4
 
@@ -32,16 +48,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # (Tuỳ chọn) Bật lint khi cần:
+      # (Optional) Lint
       # - name: Ruff
       #   run: pip install ruff && ruff check .
 
-  # --- Tests chỉ chạy khi có OPENAI_API_KEY (nếu không có => auto-skip) ---
   test:
     name: Run tests (only if OPENAI_API_KEY provided)
     runs-on: ubuntu-latest
-    needs: build
-    if: ${{ secrets.OPENAI_API_KEY != '' }}   # <= không có key thì skip job này
+    needs: [build, check-secrets]
+    if: needs.check-secrets.outputs.has_openai_key == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -60,11 +75,10 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: pytest -q
 
-  # --- Build & Push Docker image lên GHCR ---
   docker:
     name: Build & Push Docker (GHCR)
     runs-on: ubuntu-latest
-    needs: build   # không chờ test vì test có thể bị skip
+    needs: [build]   # don't block on tests; they may be skipped
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
@@ -94,12 +108,11 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  # --- (Optional) Deploy Railway nếu có token ---
   deploy-railway:
     name: Deploy to Railway
     runs-on: ubuntu-latest
-    needs: docker
-    if: github.ref == 'refs/heads/main' && secrets.RAILWAY_TOKEN != ''
+    needs: [docker, check-secrets]
+    if: github.ref == 'refs/heads/main' && needs.check-secrets.outputs.has_railway == 'true'
     steps:
       - uses: actions/checkout@v4
 
