@@ -70,3 +70,5 @@ ruff_cache/
 *.lock
 *env
 *.env.*
+# Allow this .env.example
+!.env.example
