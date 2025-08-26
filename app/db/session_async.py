@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 
 from app.core.config import settings
 
-DB_URL: str = settings.database_url  # ví dụ: "sqlite+aiosqlite:///./repairmen_local.db" hoặc "postgresql+asyncpg://..."
+DB_URL: str = settings.database_url
 
 engine = create_async_engine(
     DB_URL,
