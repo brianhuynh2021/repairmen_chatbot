@@ -83,4 +83,5 @@ urllib3==2.5.0
 uvicorn==0.35.0
 yarl==1.20.1
 zstandard==0.23.0
+alembic>=1.13,<2.0
 aiosqlite>=0.19,<1.0
